@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursor — Your Field Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a35;
+    --accent: #7fff6e;
+    --accent2: #5b8fff;
+    --accent3: #ff6e9c;
+    --text: #e8e8f0;
+    --text-muted: #7a7a90;
+    --text-dim: #4a4a60;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* Layout */
+  .layout {
+    display: block;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 32px 0 40px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .sidebar-logo .wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .sidebar-logo .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .nav-section {
+    padding: 0 16px 8px;
+  }
+
+  .nav-section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0 8px;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .nav-link.active {
+    color: var(--accent);
+  }
+
+  .nav-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .nav-link.active .nav-dot { background: var(--accent); }
+
+  /* Main content */
+  .main {
+    margin-left: 260px;
+    padding: 60px 60px 120px;
+    max-width: 860px;
+  }
+
+  /* Hero */
+  .hero {
+    margin-bottom: 80px;
+    padding-bottom: 60px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    color: var(--text);
+    margin-bottom: 24px;
+    max-width: 640px;
+  }
+
+  .hero h1 span {
+    color: var(--accent);
+  }
+
+  .hero-lead {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 600px;
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  .hero-pills {
+    display: flex;
+    gap: 10px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .pill.green { border-color: rgba(127,255,110,0.3); color: var(--accent); background: rgba(127,255,110,0.06); }
+  .pill.blue { border-color: rgba(91,143,255,0.3); color: var(--accent2); background: rgba(91,143,255,0.06); }
+  .pill.pink { border-color: rgba(255,110,156,0.3); color: var(--accent3); background: rgba(255,110,156,0.06); }
+
+  /* Sections */
+  .section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section header */
+  .section-header {
+    margin-bottom: 40px;
+  }
+
+  .section-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .section-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  .section-header .subtitle {
+    margin-top: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 15px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: #3a3a50; }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-title .icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .card p {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+
+  .card p + p { margin-top: 10px; }
+
+  /* Step cards */
+  .step {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+    align-items: start;
+  }
+
+  .step-num {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-content h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .step-content p {
+    color: var(--text-muted);
+    font-size: 14.5px;
+  }
+
+  /* Code blocks */
+  .code-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    margin: 12px 0;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+
+  .code-inline {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+
+  /* Shortcut table */
+  .shortcut-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .shortcut-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .shortcut-label {
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+
+  .shortcut-keys {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .key {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-bottom: 2px solid var(--border);
+    color: var(--text);
+    padding: 3px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  /* Callout boxes */
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin: 20px 0;
+    border-left: 3px solid;
+    font-size: 14.5px;
+    line-height: 1.65;
+  }
+
+  .callout.green {
+    background: rgba(127,255,110,0.05);
+    border-color: var(--accent);
+    color: rgba(127,255,110,0.85);
+  }
+
+  .callout.blue {
+    background: rgba(91,143,255,0.06);
+    border-color: var(--accent2);
+    color: rgba(150,185,255,0.85);
+  }
+
+  .callout.pink {
+    background: rgba(255,110,156,0.05);
+    border-color: var(--accent3);
+    color: rgba(255,160,190,0.85);
+  }
+
+  .callout strong {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+
+  /* Tags */
+  .tag-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 36px 0;
+  }
+
+  /* PM-specific callouts */
+  .pm-tip {
+    background: linear-gradient(135deg, rgba(91,143,255,0.08), rgba(127,255,110,0.04));
+    border: 1px solid rgba(91,143,255,0.25);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+
+  .pm-tip-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+
+  .pm-tip p {
+    font-size: 14.5px;
+    color: var(--text-muted);
+  }
+
+  /* List styles */
+  ul.styled, ol.styled {
+    padding-left: 0;
+    list-style: none;
+    margin: 16px 0;
+  }
+
+  ul.styled li, ol.styled li {
+    padding: 6px 0 6px 24px;
+    position: relative;
+    color: var(--text-muted);
+    font-size: 14.5px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  ul.styled li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    top: 8px;
+  }
+
+  ol.styled { counter-reset: item; }
+  ol.styled li { counter-increment: item; }
+  ol.styled li::before {
+    content: counter(item, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    top: 9px;
+  }
+
+  /* Two-col grid */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  /* Feature highlight */
+  .feature-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .badge-new { background: rgba(127,255,110,0.12); color: var(--accent); border: 1px solid rgba(127,255,110,0.2); }
+  .badge-pro { background: rgba(91,143,255,0.12); color: var(--accent2); border: 1px solid rgba(91,143,255,0.2); }
+  .badge-key { background: rgba(255,110,156,0.12); color: var(--accent3); border: 1px solid rgba(255,110,156,0.2); }
+
+  /* Mobile menu button */
+  .mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+  }
+
+  .mobile-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .hamburger {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text-muted);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 98;
+  }
+
+  .sidebar-overlay.open { display: block; }
+
+  @media (max-width: 900px) {
+    .mobile-header { display: flex; }
+
+    .sidebar {
+      top: 0;
+      left: -280px;
+      width: 260px;
+      z-index: 99;
+      transition: left 0.25s ease;
+      padding-top: 24px;
+    }
+
+    .sidebar.open { left: 0; }
+
+    .main {
+      margin-left: 0;
+      width: 100%;
+      padding: 80px 24px 80px;
+    }
+
+    .shortcut-grid { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 36px; letter-spacing: -1px; }
+    .section-header h2 { font-size: 28px; }
+
+    .card { padding: 20px; }
+    .code-block { font-size: 12px; padding: 14px 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 30px; }
+    .main { padding: 76px 18px 60px; }
+    .shortcut-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
+</style>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0e0e10">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cursor Guide">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+</head>
+<body>
+<!-- Mobile header -->
+<div class="mobile-header">
+  <span class="mobile-title">Cursor Field Guide</span>
+  <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+<div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="wordmark">Cursor Field Guide</div>
+      <div class="tag">For PMs who ship</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Start here</div>
+      <button class="nav-link active" data-section="overview">
+        <span class="nav-dot"></span> Overview
+      </button>
+      <button class="nav-link" data-section="setup">
+        <span class="nav-dot"></span> Getting Set Up
+      </button>
+      <button class="nav-link" data-section="interface">
+        <span class="nav-dot"></span> The Interface
+      </button>
+
+      <div class="nav-section-label">Core Skills</div>
+      <button class="nav-link" data-section="chat">
+        <span class="nav-dot"></span> AI Chat & Composer
+      </button>
+      <button class="nav-link" data-section="codebase">
+        <span class="nav-dot"></span> Reading Codebases
+      </button>
+      <button class="nav-link" data-section="prototyping">
+        <span class="nav-dot"></span> Prototyping Fast
+      </button>
+      <button class="nav-link" data-section="shortcuts">
+        <span class="nav-dot"></span> Key Shortcuts
+      </button>
+
+      <div class="nav-section-label">Go Deeper</div>
+      <button class="nav-link" data-section="bestpractices">
+        <span class="nav-dot"></span> Best Practices
+      </button>
+      <button class="nav-link" data-section="prompting">
+        <span class="nav-dot"></span> Prompting Like a Pro
+      </button>
+      <button class="nav-link" data-section="handoff">
+        <span class="nav-dot"></span> Handing Off to Devs
+      </button>
+      <button class="nav-link" data-section="traps">
+        <span class="nav-dot"></span> Traps to Avoid
+      </button>
+      <button class="nav-link" data-section="hidden">
+        <span class="nav-dot"></span> Hidden Power Moves
+      </button>
+
+      <div class="nav-section-label" style="color: var(--accent); opacity: 0.8;">Advanced</div>
+      <button class="nav-link" data-section="rules">
+        <span class="nav-dot"></span> Agent Rules
+      </button>
+      <button class="nav-link" data-section="directory">
+        <span class="nav-dot"></span> Directory Setup
+      </button>
+      <button class="nav-link" data-section="planvsbuild">
+        <span class="nav-dot"></span> Plan vs. Build
+      </button>
+      <button class="nav-link" data-section="artifacts">
+        <span class="nav-dot"></span> Project Artifacts
+      </button>
+      <button class="nav-link" data-section="speccraft">
+        <span class="nav-dot"></span> Right Level of Detail
+      </button>
+      <button class="nav-link" data-section="workflow">
+        <span class="nav-dot"></span> Full Project Workflow
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <section id="overview" class="section active">
+      <div class="hero">
+        <div class="hero-eyebrow">// cursor field guide — pm edition</div>
+        <h1>Code less.<br><span>Ship more.</span></h1>
+        <p class="hero-lead">A practical guide for product people who want to prototype, explore codebases, and talk to engineers on equal footing — without pretending to be a full-time dev.</p>
+        <div class="hero-pills">
+          <span class="pill green">Mixed / Full-stack</span>
+          <span class="pill blue">Prototyping → Handoff</span>
+          <span class="pill pink">PM-first perspective</span>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-number">00 — OVERVIEW</div>
+        <h2>What Cursor actually is</h2>
+        <p class="subtitle">And why it's different from just using ChatGPT for code</p>
+      </div>
+
+      <p style="color: var(--text-muted); margin-bottom: 20px;">Cursor is a code editor (built on VS Code) with AI baked into everything. The key difference from other AI tools: <strong style="color: var(--text);">it understands your entire project, not just a snippet you paste in.</strong></p>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title"><span class="icon">🧠</span> Context-aware AI</div>
+          <p>Cursor reads your whole codebase. Ask "how does auth work in this app?" and it'll give you a real answer based on your actual code — not a generic tutorial.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">⚡</span> Inline generation</div>
+          <p>Select any file, press a key, describe what you want. The AI edits code directly — you review the diff and accept or reject like a PR.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">🔍</span> Explain anything</div>
+          <p>Highlight confusing code, ask "what does this do?" — get a plain-English answer. No more Googling cryptic function names.</p>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">🚀</span> Multi-file edits</div>
+          <p>Tell it to "add a new settings page with these fields" and it'll touch every file that needs changing — routes, components, types, all of it.</p>
+        </div>
+      </div>
+
+      <div class="pm-tip">
+        <div class="pm-tip-label">💡 Your unfair advantage as a PM</div>
+        <p>You don't need to ship production code. You need to <strong style="color: var(--text);">prototype fast enough to test ideas</strong>, <strong style="color: var(--text);">understand what devs are telling you</strong>, and <strong style="color: var(--text);">produce handoffs that aren't vague</strong>. Cursor is purpose-built for exactly this.</p>
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section id="setup" class="section">
+      <div class="section-header">
+        <div class="section-number">01 — SETUP</div>
+        <h2>Getting set up</h2>
+        <p class="subtitle">From download to your first AI edit in under 15 minutes</p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Download and install</h3>
+          <p>Go to <strong>cursor.com</strong> and download for your OS. It installs like any app. Sign in with your work account — your license should auto-apply.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Open a project folder</h3>
+          <p>Use <span class="code-inline">File → Open Folder</span> (not just a file). This is critical — Cursor's AI works best when it can see the whole project. If you're exploring an existing codebase, clone it from GitHub first, then open the folder.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Pick your AI model</h3>
+          <p>Cursor lets you choose which AI model to use. For most things, <strong>Claude Sonnet</strong> or <strong>GPT-4o</strong> are excellent. You can switch models per-conversation in the chat panel. Start with the default — you can experiment later.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h3>Index your codebase</h3>
+          <p>Go to <span class="code-inline">Cursor Settings → Features → Codebase Indexing</span> and enable it. Cursor will scan your project so the AI can reference any file, even ones you haven't opened. This takes a few minutes for large codebases.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">05</div>
+        <div class="step-content">
+          <h3>Try your first AI edit</h3>
+          <p>Open any file. Press <span class="code-inline">Cmd+K</span> (Mac) or <span class="code-inline">Ctrl+K</span> (Windows). Type "add a comment explaining what this function does." Hit Enter. Accept the change. You're now using Cursor.</p>
+        </div>
+      </div>
+
+      <div class="callout green">
+        <strong>Pro tip</strong>
+        Import your VS Code settings if you've used it before: <strong>Cursor → Import VS Code Settings</strong>. Your extensions, themes, and keybindings carry over instantly.
+      </div>
+    </section>
+
+    <!-- INTERFACE -->
+    <section id="interface" class="section">
+      <div class="section-header">
+        <div class="section-number">02 — INTERFACE</div>
+        <h2>The Interface</h2>
+        <p class="subtitle">The 5 areas you actually need to know</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">📁</span> Explorer (left sidebar)</div>
+        <p>Your file tree. Click files to open them. Right-click for options. <strong style="color: var(--text);">The search bar at top (Cmd+P) is your real navigation</strong> — type a filename and jump to it instantly. Much faster than clicking through folders.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">✏️</span> Editor (center)</div>
+        <p>Where code lives. Click to place your cursor, then hit <span class="code-inline">Cmd+K</span> to trigger inline AI. You'll see AI-suggested edits highlighted in green (adds) and red (removes) — like a code diff. Press Tab to accept, Escape to reject.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">💬</span> Chat Panel (right, or Cmd+L)</div>
+        <p>Your main AI interface. Type questions about the codebase, ask it to write code, debug errors, or explain concepts. Use <span class="code-inline">@filename</span> to pull in specific files as context. This is where you'll spend a lot of time.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🔮</span> Composer (Cmd+I)</div>
+        <p>The power tool for bigger changes. Unlike Chat which mostly advises, Composer directly edits multiple files at once. Tell it "add a dark mode toggle to the settings page" and it'll touch every file needed.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">⚙️</span> Terminal (bottom, Ctrl+`)</div>
+        <p>A standard command-line terminal built in. Useful for running your app locally, installing packages, or using git. Cursor's AI can also suggest terminal commands when you ask in Chat.</p>
+      </div>
+    </section>
+
+    <!-- CHAT & COMPOSER -->
+    <section id="chat" class="section">
+      <div class="section-header">
+        <div class="section-number">03 — AI TOOLS</div>
+        <h2>Chat & Composer</h2>
+        <p class="subtitle">The two ways to talk to AI in Cursor — and when to use each</p>
+      </div>
+
+      <div class="two-col">
+        <div class="card" style="border-color: rgba(127,255,110,0.25);">
+          <div class="card-title" style="color: var(--accent);">Chat (Cmd+L)</div>
+          <p>Conversational. Ask questions, get explanations, request code snippets. Great for exploration and understanding. AI responds in chat, you copy/paste or apply manually.</p>
+          <div class="tag-row">
+            <span class="tag">Explain code</span>
+            <span class="tag">Ask questions</span>
+            <span class="tag">Debugging</span>
+          </div>
+        </div>
+        <div class="card" style="border-color: rgba(91,143,255,0.25);">
+          <div class="card-title" style="color: var(--accent2);">Composer (Cmd+I)</div>
+          <p>Agentic. Give it a task and it edits files directly across your project. Best for building new features, prototyping, or making changes that span multiple files.</p>
+          <div class="tag-row">
+            <span class="tag">Build features</span>
+            <span class="tag">Multi-file edits</span>
+            <span class="tag">Prototyping</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 16px; color: var(--text);">The <span class="code-inline">@</span> symbol — your context superpower</h3>
+
+      <p style="color: var(--text-muted); margin-bottom: 16px;">In both Chat and Composer, typing <strong style="color: var(--text);">@</strong> opens a context menu. This lets you pull in exactly what the AI should know about.</p>
+
+      <div class="card">
+        <ul class="styled">
+          <li><span class="code-inline">@filename</span> — Attach a specific file to the conversation</li>
+          <li><span class="code-inline">@folder</span> — Include an entire folder of files</li>
+          <li><span class="code-inline">@codebase</span> — Let AI search the full indexed codebase</li>
+          <li><span class="code-inline">@docs</span> — Pull in official library documentation (React, Next.js, etc.)</li>
+          <li><span class="code-inline">@web</span> — Live web search for current info</li>
+          <li><span class="code-inline">@git</span> — Reference recent commits and diffs</li>
+        </ul>
+      </div>
+
+      <div class="callout blue">
+        <strong>Practical example</strong>
+        You're trying to understand why a bug exists. Open Chat and type: "@codebase Why does the user session expire early? Trace through the auth flow and explain it in plain English." Cursor will read the relevant files and explain it like a good engineer would.
+      </div>
+    </section>
+
+    <!-- READING CODEBASES -->
+    <section id="codebase" class="section">
+      <div class="section-header">
+        <div class="section-number">04 — CODEBASE EXPLORATION</div>
+        <h2>Reading codebases</h2>
+        <p class="subtitle">Use Cursor to get up to speed on any project fast — even ones you didn't build</p>
+      </div>
+
+      <div class="pm-tip">
+        <div class="pm-tip-label">🎯 PM use case</div>
+        <p>Before any sprint planning, backlog grooming, or technical spec — spend 20 minutes with Cursor asking questions about the codebase. You'll walk into the meeting with better context than most engineers who haven't touched that area recently.</p>
+      </div>
+
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 16px; margin: 28px 0 14px; color: var(--text);">Questions to ask Cursor about any codebase</h3>
+
+      <div class="card">
+        <div class="code-block">
+@codebase Give me a high-level overview of how this app is structured.
+What are the main modules and how do they relate?</div>
+        <div class="code-block">
+@codebase How does [feature name] work end-to-end?
+Walk me through it from the user action to the database.</div>
+        <div class="code-block">
+@codebase What would need to change if we wanted to add [new feature]?
+List the files and areas that would be affected.</div>
+        <div class="code-block">
+@codebase What are the main data models? Describe each one and
+what it represents in the product.</div>
+        <div class="code-block">
+@codebase Where are the biggest areas of technical debt or
+known fragility? What should I be careful about?</div>
+      </div>
+
+      <hr class="divider">
+
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 16px; margin: 0 0 14px; color: var(--text);">The "explain this" trick</h3>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Highlight confusing code</h3>
+          <p>Select any block of code in the editor that you don't understand.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Right-click → "Add to Chat"</h3>
+          <p>Or press Cmd+Shift+L. The selected code gets sent to the chat panel.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Ask your question</h3>
+          <p>"Explain this to a non-engineer" or "what problem is this solving?" or "why would someone write it this way?"</p>
+        </div>
+      </div>
+
+      <div class="callout pink">
+        <strong>Gotcha</strong>
+        If you ask about a function and Cursor seems confused, it probably needs more context. Add <span class="code-inline">@codebase</span> to your question so it can look at how that function is used elsewhere.
+      </div>
+    </section>
+
+    <!-- PROTOTYPING -->
+    <section id="prototyping" class="section">
+      <div class="section-header">
+        <div class="section-number">05 — PROTOTYPING</div>
+        <h2>Prototyping fast</h2>
+        <p class="subtitle">From idea to working demo — the PM's secret weapon</p>
+      </div>
+
+      <div class="pm-tip">
+        <div class="pm-tip-label">🎯 The goal</div>
+        <p>You're not trying to ship production code. You're trying to build something <strong style="color: var(--text);">real enough to get meaningful feedback</strong> from users, stakeholders, or your own engineering team. Think of it as an interactive Figma that actually works.</p>
+      </div>
+
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 28px 0 14px; color: var(--text);">The prototype playbook</h3>
+
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Start with a scaffold prompt</h3>
+          <p>Open Composer (Cmd+I) in a new or empty folder. Give it a clear, specific task to build the skeleton of what you need.</p>
+          <div class="code-block">Build a simple React app with a sidebar navigation,
+a main content area, and a settings page. Use Tailwind
+for styling. Keep it clean and minimal.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Iterate with plain English</h3>
+          <p>Don't try to write perfect specs upfront. Build fast, react to what you see. Keep Composer open and keep telling it what to change.</p>
+          <div class="code-block">Add a user profile card in the sidebar with an avatar,
+name, and role. Make it look polished.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Use real-ish data</h3>
+          <p>Ask Cursor to generate placeholder data that looks realistic — real names, real-looking IDs, plausible numbers. This makes demos far more convincing.</p>
+          <div class="code-block">Replace the mock data with 5 realistic user records.
+Use realistic names, email addresses, and dates.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h3>Run it locally</h3>
+          <p>Ask Cursor in Chat: "How do I run this app?" It'll tell you exactly what to type in the terminal. Usually just <span class="code-inline">npm install</span> then <span class="code-inline">npm run dev</span>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">05</div>
+        <div class="step-content">
+          <h3>Document what you built</h3>
+          <p>Ask Cursor: "Write a brief technical summary of this prototype — what it does, what's hardcoded, and what would need to change for production." Paste this into your handoff doc.</p>
+        </div>
+      </div>
+
+      <div class="callout green">
+        <strong>Great prototype stacks for PMs</strong>
+        <strong style="color: var(--text);">React + Tailwind</strong> — Fast UI, easy to tweak visually<br>
+        <strong style="color: var(--text);">Next.js</strong> — If you need pages, routing, or mock API endpoints<br>
+        <strong style="color: var(--text);">Plain HTML/CSS/JS</strong> — When you want maximum simplicity and shareability
+      </div>
+    </section>
+
+    <!-- SHORTCUTS -->
+    <section id="shortcuts" class="section">
+      <div class="section-header">
+        <div class="section-number">06 — SHORTCUTS</div>
+        <h2>Key shortcuts</h2>
+        <p class="subtitle">The 12 you'll use constantly — memorize these first</p>
+      </div>
+
+      <div class="shortcut-grid">
+        <div class="shortcut-item">
+          <span class="shortcut-label">Open AI Chat</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">L</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Open Composer</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">I</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Inline AI edit</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">K</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Accept AI suggestion</span>
+          <div class="shortcut-keys"><span class="key">Tab</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Reject AI suggestion</span>
+          <div class="shortcut-keys"><span class="key">Esc</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Quick file open</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">P</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Add selection to Chat</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">⇧</span><span class="key">L</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Search in all files</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">⇧</span><span class="key">F</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Toggle terminal</span>
+          <div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">`</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Find in file</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">F</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Command palette</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">⇧</span><span class="key">P</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span class="shortcut-label">Split editor</span>
+          <div class="shortcut-keys"><span class="key">⌘</span><span class="key">\</span></div>
+        </div>
+      </div>
+
+      <div class="callout blue">
+        <strong>Windows / Linux note</strong>
+        Replace <strong>⌘ (Cmd)</strong> with <strong>Ctrl</strong> for all shortcuts above. Everything else is the same.
+      </div>
+    </section>
+
+    <!-- BEST PRACTICES -->
+    <section id="bestpractices" class="section">
+      <div class="section-header">
+        <div class="section-number">07 — BEST PRACTICES</div>
+        <h2>Best practices</h2>
+        <p class="subtitle">How to actually get good results, not just fast results</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">📐</span> Always open a folder, not a file</div>
+        <p>Cursor is dramatically more useful when it can see the whole project. Opening a single file cuts the AI off from context it needs. Make it a habit: always <span class="code-inline">Open Folder</span>.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🔁</span> Small, focused prompts beat big vague ones</div>
+        <p>Instead of "build me a dashboard," say "add a chart component to the analytics page that shows weekly signups using recharts." Specific = better output, fewer iterations.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">✅</span> Review every AI edit before accepting</div>
+        <p>Cursor shows you diffs in green/red. Don't just Tab through everything. A 10-second review catches 90% of AI mistakes. Treat it like a junior dev's PR — smart but needs checking.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">💾</span> Commit often with Git</div>
+        <p>If you break something, you need a way back. Even for prototypes, run <span class="code-inline">git init</span> and commit after each working state. Ask Cursor in Chat "what git commands should I run to save my progress?"</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🧩</span> Use .cursorrules to set defaults</div>
+        <p>Create a file called <span class="code-inline">.cursorrules</span> in your project root. Write plain English rules like "always use TypeScript," "prefer functional components," or "never use inline styles." The AI will follow these automatically.</p>
+        <div class="code-block"># .cursorrules example
+Always use TypeScript.
+Use Tailwind for styling, not inline CSS.
+Write plain English comments for any non-obvious logic.
+Keep components small and focused — one responsibility each.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🔗</span> Give the AI its own error messages</div>
+        <p>If something breaks, paste the error message directly into Chat. Don't try to interpret it first. Type: "I got this error: [paste]. What does it mean and how do I fix it?" Nine times out of ten, you'll have an answer in under a minute.</p>
+      </div>
+    </section>
+
+    <!-- PROMPTING -->
+    <section id="prompting" class="section">
+      <div class="section-header">
+        <div class="section-number">08 — PROMPTING</div>
+        <h2>Prompting like a pro</h2>
+        <p class="subtitle">The difference between mediocre and great AI output is usually the prompt</p>
+      </div>
+
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin-bottom: 16px; color: var(--text);">The anatomy of a good Cursor prompt</h3>
+
+      <div class="card">
+        <p style="margin-bottom: 12px;"><strong style="color: var(--text);">1. Role / context</strong> — Tell it who you are or what the project is</p>
+        <p style="margin-bottom: 12px;"><strong style="color: var(--text);">2. Task</strong> — Be specific about what you want built or changed</p>
+        <p style="margin-bottom: 12px;"><strong style="color: var(--text);">3. Constraints</strong> — Style, libraries, what NOT to do</p>
+        <p><strong style="color: var(--text);">4. Output format</strong> — "Explain it," "edit the file," "write a new component," etc.</p>
+
+        <div class="code-block">
+This is a Next.js app using Tailwind. I need to add a notification
+banner that appears at the top of every page when there's a system
+alert. It should be dismissable, use amber/yellow for warnings and
+red for errors, and store the dismissed state in localStorage.
+Edit the Layout component to add this.</div>
+      </div>
+
+      <hr class="divider">
+
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin-bottom: 16px; color: var(--text);">Prompts for your specific PM workflow</h3>
+
+      <div class="card">
+        <div class="card-title">Understanding existing code</div>
+        <div class="code-block">@codebase Explain the [feature] flow in plain English.
+Who calls what, what data changes, and what does the user see?</div>
+        <div class="code-block">@filename What is this file responsible for?
+What would break if I deleted it?</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Estimating effort for stakeholders</div>
+        <div class="code-block">@codebase If we wanted to add [feature], list the files that
+would need to change and give a rough sense of complexity:
+trivial / moderate / significant.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Prototype scaffolding</div>
+        <div class="code-block">Build a [type] prototype. It should:
+- [Key screen 1]
+- [Key screen 2]
+- [Core interaction]
+Use hardcoded data for now. Make it look polished enough to demo.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Writing documentation</div>
+        <div class="code-block">@codebase Write a technical summary of this project
+for a new engineer joining the team. Cover architecture,
+main data models, and anything they should know before
+making changes.</div>
+      </div>
+    </section>
+
+    <!-- HANDOFF -->
+    <section id="handoff" class="section">
+      <div class="section-header">
+        <div class="section-number">09 — HANDOFF</div>
+        <h2>Handing off to devs</h2>
+        <p class="subtitle">How to use Cursor-built prototypes to have better engineering conversations</p>
+      </div>
+
+      <div class="pm-tip">
+        <div class="pm-tip-label">🎯 The goal of handoff</div>
+        <p>A Cursor prototype is not production code. It's a <strong style="color: var(--text);">communication tool</strong> — it shows devs exactly what you mean so they spend less time guessing and more time building the right thing.</p>
+      </div>
+
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 28px 0 14px; color: var(--text);">The handoff checklist</h3>
+
+      <div class="card">
+        <ul class="styled">
+          <li><strong style="color: var(--text);">Screenshot or record</strong> the prototype working. A 2-minute Loom beats a 5-page spec.</li>
+          <li><strong style="color: var(--text);">List what's hardcoded</strong> vs. what should be real. Ask Cursor to generate this list.</li>
+          <li><strong style="color: var(--text);">Document your data model assumptions</strong> — what fields you used, what relationships you implied.</li>
+          <li><strong style="color: var(--text);">Flag edge cases you didn't handle</strong> — error states, empty states, loading states.</li>
+          <li><strong style="color: var(--text);">Note which libraries you used</strong> — devs may want to swap them for internal standards.</li>
+          <li><strong style="color: var(--text);">Share the repo</strong> — even messy prototype code is better than nothing for engineers to reference.</li>
+        </ul>
+      </div>
+
+      <hr class="divider">
+
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 0 0 14px; color: var(--text);">Let Cursor write the handoff doc</h3>
+
+      <div class="code-block">@codebase Write a technical handoff document for this prototype.
+Include:
+- What it does (user-facing)
+- How it's structured (technical overview)
+- What's hardcoded vs. needs real implementation
+- Assumptions I made about data models
+- Edge cases not handled
+- Suggested next steps for a dev picking this up</div>
+
+      <div class="callout green">
+        <strong>The real win</strong>
+        When you walk into the engineering meeting and say "here's a working prototype, here's a technical summary, and here's what needs to change for production" — the conversation gets 10x more productive. You've done their first hour of work for them.
+      </div>
+    </section>
+
+    <!-- TRAPS -->
+    <section id="traps" class="section">
+      <div class="section-header">
+        <div class="section-number">10 — WATCH OUT</div>
+        <h2>Traps to avoid</h2>
+        <p class="subtitle">Things that trip up even experienced Cursor users</p>
+      </div>
+
+      <div class="card" style="border-color: rgba(255,110,156,0.2);">
+        <div class="card-title"><span class="icon">⚠️</span> Trusting AI output blindly</div>
+        <p>Cursor can confidently write code that doesn't work, or that works for the happy path but breaks on edge cases. Always test what it builds, even briefly. The AI is wrong just often enough to matter.</p>
+      </div>
+
+      <div class="card" style="border-color: rgba(255,110,156,0.2);">
+        <div class="card-title"><span class="icon">⚠️</span> Letting context get stale</div>
+        <p>If you've made a lot of changes and the AI starts giving weird suggestions, start a fresh Chat or Composer session. Long conversations can confuse the model's understanding of the current state of your code.</p>
+      </div>
+
+      <div class="card" style="border-color: rgba(255,110,156,0.2);">
+        <div class="card-title"><span class="icon">⚠️</span> Not using @codebase when you should</div>
+        <p>If the AI gives a generic answer that ignores your actual project, it probably doesn't have context. Add <span class="code-inline">@codebase</span> to your question so it searches your indexed code first.</p>
+      </div>
+
+      <div class="card" style="border-color: rgba(255,110,156,0.2);">
+        <div class="card-title"><span class="icon">⚠️</span> Huge prompts for huge tasks</div>
+        <p>Asking Cursor to "build the entire onboarding flow" in one go usually produces mediocre results. Break big tasks into smaller steps. Each Composer prompt should be one coherent change.</p>
+      </div>
+
+      <div class="card" style="border-color: rgba(255,110,156,0.2);">
+        <div class="card-title"><span class="icon">⚠️</span> Showing prototypes as finished work</div>
+        <p>Cursor-built prototypes skip auth, error handling, accessibility, performance, security, and a dozen other things that matter in production. Always label your prototypes clearly as "not production-ready."</p>
+      </div>
+
+      <div class="card" style="border-color: rgba(255,110,156,0.2);">
+        <div class="card-title"><span class="icon">⚠️</span> Forgetting to save / commit</div>
+        <p>AI edits can cascade in unexpected ways. Get in the habit of committing to git after each working state. If you don't know git, ask Cursor to walk you through it — it'll teach you the 5 commands you actually need.</p>
+      </div>
+    </section>
+
+    <!-- HIDDEN POWER MOVES -->
+    <section id="hidden" class="section">
+      <div class="section-header">
+        <div class="section-number">11 — POWER MOVES</div>
+        <h2>Hidden power moves</h2>
+        <p class="subtitle">Things most new Cursor users don't discover for months</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🗺️</span> Generate an architecture diagram <span class="feature-badge badge-key">underused</span></div>
+        <p>Ask: <em>"@codebase Generate a Mermaid diagram showing how the main components of this app relate to each other."</em> Paste the output into mermaid.live and you get a visual map. Great for onboarding docs and engineering discussions.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🐛</span> Paste errors directly <span class="feature-badge badge-key">underused</span></div>
+        <p>When something breaks in your browser or terminal, copy the full error message and paste it in Chat. No preamble needed. Cursor knows what to do with a stack trace.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🧪</span> Ask for test scenarios <span class="feature-badge badge-pro">pm gold</span></div>
+        <p>Ask: <em>"@codebase What are the 10 most important test cases for the checkout flow? List happy path, edge cases, and potential failure modes."</em> This is legitimately useful for QA planning, not just engineering.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">📊</span> Data model reverse engineering <span class="feature-badge badge-pro">pm gold</span></div>
+        <p>Ask: <em>"@codebase Describe the data model of this app. What are the main entities, their fields, and how they relate? Format it like an ERD description."</em> Understand what's being stored before you spec new features.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">📝</span> Auto-generate user stories <span class="feature-badge badge-new">new habit</span></div>
+        <p>After building a prototype, ask: <em>"Looking at this code, write user stories in the format 'As a [user], I want to [action] so that [outcome]' for all the features I've built."</em> Instant backlog seed.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🔐</span> Security and privacy audit <span class="feature-badge badge-new">new habit</span></div>
+        <p>Before showing any prototype to stakeholders, ask: <em>"@codebase Look at this code and flag any obvious security issues, hardcoded credentials, or privacy concerns I should be aware of."</em> Good habit even for prototypes.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🌐</span> Multi-model comparison</div>
+        <p>If Cursor gives a confusing answer, switch models in the chat dropdown (Claude vs GPT-4o) and ask the same question. Different models have different strengths. Claude tends to be better at long explanations; GPT-4o sometimes writes tighter code.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">📦</span> Notepads for persistent context</div>
+        <p>Use <strong>Cursor Notepads</strong> (under Chat) to save reusable context you add to every session — like your tech stack, coding standards, or product description. Reference them with <span class="code-inline">@notepad</span> in any chat.</p>
+      </div>
+
+      <hr class="divider">
+
+      <div class="callout blue">
+        <strong>The bigger picture</strong>
+        Cursor makes you a more informed PM. When you can read code, prototype ideas, and understand technical tradeoffs — your specs get tighter, your estimates get more accurate, and your engineers spend more time building and less time clarifying. That's the real ROI.
+      </div>
+    </section>
+
+
+    <!-- AGENT RULES -->
+    <section id="rules" class="section">
+      <div class="section-header">
+        <div class="section-number">12 — AGENT RULES</div>
+        <h2>Setting rules for the agent</h2>
+        <p class="subtitle">How to stop re-explaining yourself every session and make the AI behave consistently</p>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 24px;">Without rules, Cursor's agent starts fresh every session — no memory of your stack, your preferences, or your standards. Rules fix that. They're instructions that run silently in the background on every prompt.</p>
+      <div class="pm-tip">
+        <div class="pm-tip-label">🎯 Why this matters for you</div>
+        <p>As a PM prototyping across multiple projects, rules let you clone your "working style" into every new repo. You write them once, and the agent behaves like a dev who's already been onboarded — knows your stack, your naming conventions, what to skip, what to never do.</p>
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin-bottom: 16px; color: var(--text);">The two places rules live</h3>
+      <div class="two-col">
+        <div class="card" style="border-color: rgba(127,255,110,0.2);">
+          <div class="card-title" style="color: var(--accent);">.cursorrules <span class="feature-badge badge-key">project-level</span></div>
+          <p>A plain text file in your project root. Rules here apply only to this project. Committed to git — your whole team inherits them. Best for stack-specific, project-specific instructions.</p>
+        </div>
+        <div class="card" style="border-color: rgba(91,143,255,0.2);">
+          <div class="card-title" style="color: var(--accent2);">Settings → Rules for AI <span class="feature-badge badge-pro">global</span></div>
+          <p>Lives in Cursor's settings, applies across every project. Best for personal preferences that never change — tone, output format, how much the AI explains its reasoning.</p>
+        </div>
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin-bottom: 16px; color: var(--text);">What to put in your rules</h3>
+      <div class="card">
+        <div class="card-title">Stack &amp; language rules</div>
+        <p style="margin-bottom: 12px;">Tell it exactly what you're using so it never suggests the wrong thing.</p>
+        <div class="code-block">This is a Next.js 14 app using the App Router (not Pages Router).
+TypeScript only — never suggest plain JavaScript.
+Use Tailwind for all styling. No CSS modules, no styled-components.
+State management via Zustand. Do not suggest Redux or Context API.
+Use Prisma for database queries. PostgreSQL.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Code style &amp; conventions</div>
+        <p style="margin-bottom: 12px;">Enforce consistency without having to say it every time.</p>
+        <div class="code-block">Use named exports, not default exports.
+Component files: PascalCase. Utility files: camelCase.
+Keep components under 150 lines. If longer, split them.
+Always handle loading and error states in UI components.
+No console.log statements in committed code — use a logger.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Behavior &amp; output style</div>
+        <p style="margin-bottom: 12px;">Control how the agent communicates and what it assumes.</p>
+        <div class="code-block">When making changes, briefly explain what you changed and why.
+If you're unsure about something, say so — don't guess silently.
+Don't refactor code I didn't ask you to touch.
+When adding new dependencies, flag them explicitly.
+Prefer editing existing files over creating new ones unless necessary.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">PM-specific prototype rules</div>
+        <p style="margin-bottom: 12px;">A starter .cursorrules for quick PM prototyping work.</p>
+        <div class="code-block"># PM Prototype Rules
+This is a prototype — not production code. Prioritize clarity
+and speed over optimization.
+
+Use hardcoded mock data unless told otherwise.
+Keep all components in /components. Pages in /app or /pages.
+Write simple, readable code — I'll be sharing this with engineers
+who need to understand it quickly.
+Add a short comment above any non-obvious logic.
+If a feature would require auth, backend, or a real API to work,
+stub it out and add a TODO comment explaining what's needed.</div>
+      </div>
+      <div class="callout green">
+        <strong>Start simple, add over time</strong>
+        Don't try to write the perfect .cursorrules on day one. Start with your stack and one or two style preferences. Add rules whenever you catch the agent doing something you had to correct — that correction is your next rule.
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin-bottom: 16px; color: var(--text);">Rules don'ts</h3>
+      <div class="card">
+        <ul class="styled">
+          <li><strong style="color: var(--text);">Don't write rules as vague principles.</strong> "Write good code" does nothing. "Keep functions under 30 lines" does something.</li>
+          <li><strong style="color: var(--text);">Don't over-specify things the AI already knows.</strong> You don't need "use proper indentation" — that's noise that dilutes real rules.</li>
+          <li><strong style="color: var(--text);">Don't set conflicting rules.</strong> "Always use TypeScript" and "write plain .js files" will confuse the agent. One wins arbitrarily.</li>
+          <li><strong style="color: var(--text);">Don't forget to update them.</strong> If your stack changes, update the rules. Stale rules cause confusing AI behavior that's hard to debug.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- DIRECTORY SETUP -->
+    <section id="directory" class="section">
+      <div class="section-header">
+        <div class="section-number">13 — DIRECTORY SETUP</div>
+        <h2>Directory setup for AI projects</h2>
+        <p class="subtitle">Structure your project so the agent always knows where things go — and where to look</p>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 24px;">A well-structured directory does two things: it makes the AI's outputs predictable (new files land in the right place), and it makes codebase exploration dramatically easier for you and your devs.</p>
+      <div class="callout blue">
+        <strong>The principle</strong>
+        AI agents work best with <strong>opinionated, predictable structure</strong>. Flat folders with 40 files, or deeply nested trees with no pattern, both degrade output quality. Clear conventions = better AI, better handoffs, better everything.
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 0 0 16px; color: var(--text);">Recommended structure for PM prototypes (Next.js)</h3>
+      <div class="card">
+        <div class="code-block">/my-prototype
+├── /app                    ← Pages and routes (Next.js App Router)
+│   ├── /dashboard
+│   │   └── page.tsx
+│   ├── /settings
+│   │   └── page.tsx
+│   └── layout.tsx
+├── /components             ← Reusable UI components
+│   ├── /ui                 ← Generic: Button, Card, Modal, Input
+│   └── /features           ← Feature-specific: UserCard, MetricsChart
+├── /lib                    ← Utilities, helpers, constants
+│   ├── utils.ts
+│   └── constants.ts
+├── /data                   ← Mock/hardcoded data lives here
+│   └── mockUsers.ts
+├── /types                  ← TypeScript types and interfaces
+│   └── index.ts
+├── /public                 ← Static assets (images, icons)
+├── .cursorrules            ← Your agent rules
+├── PLANNING.md             ← Your project brief
+└── TASKS.md                ← Current task list for the agent</div>
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 0 0 16px; color: var(--text);">The two files that change everything: PLANNING.md and TASKS.md</h3>
+      <div class="two-col">
+        <div class="card" style="border-color: rgba(127,255,110,0.2);">
+          <div class="card-title" style="color: var(--accent);">PLANNING.md</div>
+          <p>A living document at the root of your project. Describes what you're building, why, the tech stack, key decisions, and constraints. Reference with <span class="code-inline">@PLANNING.md</span>. Think of it as the onboarding doc for your AI collaborator.</p>
+        </div>
+        <div class="card" style="border-color: rgba(91,143,255,0.2);">
+          <div class="card-title" style="color: var(--accent2);">TASKS.md</div>
+          <p>A running list of what needs to be done. You update it as work progresses. Reference it at the start of each Composer session. Keeps the agent focused and gives you a natural checklist as PM.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Sample PLANNING.md</div>
+        <div class="code-block"># Project: [Name]
+
+## What this is
+One paragraph. What does this app do? Who uses it? What problem does it solve?
+
+## Tech stack
+- Framework: Next.js 14 (App Router)
+- Styling: Tailwind CSS
+- Language: TypeScript
+- Data: Hardcoded mock data (no real backend yet)
+
+## Key screens
+1. Dashboard — overview of [X]
+2. Detail view — drill into [Y]
+3. Settings — manage [Z]
+
+## What this is NOT
+- Not production-ready
+- No real auth
+- No real API calls
+
+## Key decisions
+- Using Recharts for charts (not D3 — too complex for prototype)
+- All mock data lives in /data folder
+- Mobile responsive but desktop-first</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Sample TASKS.md</div>
+        <div class="code-block"># Tasks
+
+## In Progress
+- [ ] Add empty state to the user table when no results
+
+## Up Next
+- [ ] Build the notifications dropdown in the header
+- [ ] Add date range filter to the dashboard chart
+- [ ] Make sidebar collapsible on desktop
+
+## Done
+- [x] Scaffold app shell and navigation
+- [x] Build dashboard page with mock metrics
+- [x] User table with sorting</div>
+      </div>
+      <div class="callout green">
+        <strong>How to use these together</strong>
+        Start every Composer session with: <span class="code-inline">@PLANNING.md @TASKS.md — let's work on the next task in the list.</span> The agent has full context before writing a single line of code.
+      </div>
+    </section>
+
+    <!-- PLAN VS BUILD -->
+    <section id="planvsbuild" class="section">
+      <div class="section-header">
+        <div class="section-number">14 — PLAN VS. BUILD</div>
+        <h2>Plan vs. Build mode</h2>
+        <p class="subtitle">The most important strategic distinction in AI-assisted development</p>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 24px;">Cursor's agent can do two very different things: <strong style="color: var(--text);">think with you</strong> (Plan) or <strong style="color: var(--text);">execute for you</strong> (Build). Knowing which mode you're in — and switching intentionally — is what separates people who get great results from people who get frustrated.</p>
+      <div class="two-col">
+        <div class="card" style="border-color: rgba(127,255,110,0.2);">
+          <div class="card-title" style="color: var(--accent);">🗺 Plan Mode</div>
+          <p>You're thinking, designing, deciding. The AI is a thinking partner — it challenges assumptions, identifies gaps, proposes approaches, and helps you figure out what to build before building it.</p>
+          <p style="margin-top: 10px;"><strong style="color: var(--text);">Tools:</strong> Chat. Conversation.</p>
+          <p style="margin-top: 8px;"><strong style="color: var(--text);">Output:</strong> Decisions, PLANNING.md, TASKS.md, clarity.</p>
+        </div>
+        <div class="card" style="border-color: rgba(91,143,255,0.2);">
+          <div class="card-title" style="color: var(--accent2);">🔨 Build Mode</div>
+          <p>You know what you want. The AI executes. It writes code, edits files, creates components. You review diffs, test what it builds, and steer with follow-up prompts.</p>
+          <p style="margin-top: 10px;"><strong style="color: var(--text);">Tools:</strong> Composer. Inline edit (Cmd+K).</p>
+          <p style="margin-top: 8px;"><strong style="color: var(--text);">Output:</strong> Working code, running prototype.</p>
+        </div>
+      </div>
+      <div class="callout pink">
+        <strong>The most common mistake</strong>
+        Jumping straight to Build mode before the plan is solid. The AI will confidently build something — it just might not be the right thing. Vague prompt in = plausible-looking but wrong code out. You'll spend more time correcting it than if you'd planned for 20 minutes first.
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 0 0 16px; color: var(--text);">When is your plan good enough to build?</h3>
+      <div class="card">
+        <div class="card-title">The "ready to build" checklist</div>
+        <ul class="styled">
+          <li><strong style="color: var(--text);">You can name every screen.</strong> If you can't list the pages, you're not ready.</li>
+          <li><strong style="color: var(--text);">You know what data is on each screen.</strong> Even roughly — what does the user see? What are the key fields?</li>
+          <li><strong style="color: var(--text);">You've chosen your stack.</strong> Framework, styling, key libraries. Don't let the agent choose for you unless you genuinely don't care.</li>
+          <li><strong style="color: var(--text);">You know the first task.</strong> Not the whole project — just the first concrete thing to build. "Scaffold the app shell with navigation" is a perfect first task.</li>
+          <li><strong style="color: var(--text);">You know what you're NOT building yet.</strong> Explicitly listing out-of-scope items prevents the agent from over-building.</li>
+        </ul>
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 0 0 16px; color: var(--text);">The planning conversation prompt</h3>
+      <div class="card">
+        <div class="code-block">I'm a PM building a prototype for [describe the idea in 2-3 sentences].
+The users are [who]. The core problem it solves is [problem].
+
+Help me think through:
+1. What are the key screens this prototype needs?
+2. What data/fields does each screen need?
+3. What's a good tech stack for a quick React prototype?
+4. What should I explicitly leave out for now?
+5. What's a logical order to build the screens?
+
+Then write me a PLANNING.md and TASKS.md I can add to my project.</div>
+      </div>
+      <div class="callout green">
+        <strong>The 20-minute rule</strong>
+        If you can't describe what you're building clearly enough to write a PLANNING.md in 20 minutes of back-and-forth with the AI, you need more product thinking — not more coding. That's a product problem, not a Cursor problem.
+      </div>
+    </section>
+
+    <!-- PROJECT ARTIFACTS -->
+    <section id="artifacts" class="section">
+      <div class="section-header">
+        <div class="section-number">15 — PROJECT ARTIFACTS</div>
+        <h2>Project artifacts</h2>
+        <p class="subtitle">What documents and files to expect — and create — across any project</p>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 24px;">A "project artifact" is any file that describes, plans, or documents your project rather than running it. These are just as important as the code — especially when handing off to devs or returning to a prototype weeks later.</p>
+      <div class="card">
+        <div class="card-title"><span class="icon">📋</span> PLANNING.md <span class="feature-badge badge-key">essential</span></div>
+        <p>What the project is, why it exists, the tech stack, key decisions, and what's out of scope. Lives at project root. Start every project with this.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">✅</span> TASKS.md <span class="feature-badge badge-key">essential</span></div>
+        <p>Current work queue: In Progress, Up Next, Done. The agent uses this as its work order. You use it as a PM dashboard. Update as you go — it doubles as a changelog.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">📐</span> ARCHITECTURE.md <span class="feature-badge badge-pro">for handoff</span></div>
+        <p>How the app is structured technically. Component hierarchy, data flow, key wiring decisions. Ask Cursor to generate it: <span class="code-inline">@codebase Write an ARCHITECTURE.md for this project.</span></p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🗄️</span> DATA_MODEL.md <span class="feature-badge badge-pro">for handoff</span></div>
+        <p>Every data entity, its fields, types, and relationships. Even for mock data — tells devs what the real schema should look like. Prompt: <span class="code-inline">@codebase Document the data model implied by this prototype's mock data.</span></p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🔌</span> API_NEEDS.md <span class="feature-badge badge-pro">for handoff</span></div>
+        <p>Every API endpoint the production version will need. For each: what it does, inputs, outputs. Prompt: <span class="code-inline">@codebase List every place this prototype needs a real API call in production and describe each endpoint.</span></p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">⚠️</span> KNOWN_ISSUES.md <span class="feature-badge badge-new">underrated</span></div>
+        <p>Things that are broken, stubbed, or intentionally incomplete. Saves awkward demo moments. Prompt: <span class="code-inline">@codebase What's hardcoded, missing, or likely broken in this prototype?</span></p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🎬</span> Demo script</div>
+        <p>Not a code file — notes on how to walk through the prototype. What to show first, what to click, what to say. 10 minutes to write, makes every stakeholder demo 10x smoother.</p>
+      </div>
+      <hr class="divider">
+      <div class="callout blue">
+        <strong>Minimum viable artifact set</strong>
+        For any prototype: <strong>PLANNING.md + TASKS.md + KNOWN_ISSUES.md</strong>. Enough for a dev to pick up where you left off and understand what's real vs. stubbed. Everything else is a bonus.
+      </div>
+    </section>
+
+    <!-- RIGHT LEVEL OF DETAIL -->
+    <section id="speccraft" class="section">
+      <div class="section-header">
+        <div class="section-number">16 — SPEC CRAFT</div>
+        <h2>Right level of detail</h2>
+        <p class="subtitle">Too vague and the agent guesses wrong. Too detailed and you've done all the work yourself.</p>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 24px;">This is the craft of working with AI agents. There's a Goldilocks zone of specificity — finding it faster is what separates people who get great results from people who iterate forever.</p>
+      <div class="two-col">
+        <div class="card" style="border-color: rgba(255,110,156,0.2);">
+          <div class="card-title" style="color: var(--accent3);">❌ Too vague</div>
+          <p>"Build a dashboard page."</p>
+          <p style="margin-top: 10px; font-size: 13.5px;">The agent invents everything. It produces something plausible but almost certainly not what you had in mind. You spend 45 minutes steering it back.</p>
+        </div>
+        <div class="card" style="border-color: rgba(255,110,156,0.2);">
+          <div class="card-title" style="color: var(--accent3);">❌ Too specific</div>
+          <p>"Column 1 has a card at position x:0, y:0 with a blue (#3B82F6) background, 16px padding..."</p>
+          <p style="margin-top: 10px; font-size: 13.5px;">You've written the code in English. It's slower than writing it yourself. The agent becomes a transcription service.</p>
+        </div>
+      </div>
+      <div class="card" style="border-color: rgba(127,255,110,0.2);">
+        <div class="card-title" style="color: var(--accent);">✅ Just right</div>
+        <p>"Build a dashboard page. Four metric cards at the top: total users, active this week, revenue this month, churn rate — use mock numbers. Below that, a line chart showing weekly signups over 8 weeks. Below that, a table of the 5 most recent signups: name, email, plan, signup date. Match the layout style of the other pages."</p>
+        <p style="margin-top: 10px; font-size: 13.5px; color: var(--text-muted);">You've specified <em>what</em> is on the page and <em>what data</em> it shows. You've left <em>how</em> it looks to the agent. This is the zone.</p>
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 0 0 16px; color: var(--text);">The framework: specify What, not How</h3>
+      <div class="card">
+        <ul class="styled">
+          <li><strong style="color: var(--text);">You specify:</strong> Which screens exist, what data appears, what actions a user can take, what the key interactions are.</li>
+          <li><strong style="color: var(--text);">Agent decides:</strong> Component structure, CSS details, file organization (within your rules), implementation approach.</li>
+          <li><strong style="color: var(--text);">You override when:</strong> The agent's choice is wrong for your audience, conflicts with your dev team's standards, or looks bad in the demo.</li>
+        </ul>
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 0 0 16px; color: var(--text);">Signals you've written a good prompt</h3>
+      <div class="card">
+        <ul class="styled">
+          <li>You can read it back and know exactly what you'd expect to see when it's done.</li>
+          <li>There's no ambiguity about what data or content should appear on screen.</li>
+          <li>You haven't specified colors, pixel values, or CSS properties (unless those genuinely matter).</li>
+          <li>You've told it what NOT to change — often as useful as what to do.</li>
+          <li>It references existing context: <span class="code-inline">@PLANNING.md</span>, existing component names, screen names from your file tree.</li>
+        </ul>
+      </div>
+      <hr class="divider">
+      <h3 style="font-family: 'Syne', sans-serif; font-size: 17px; margin: 0 0 16px; color: var(--text);">Iteration beats perfection</h3>
+      <div class="card">
+        <p>A good Cursor workflow is iterative, not waterfall. Write a solid-but-imperfect prompt, see what the agent builds, then correct specifically what's wrong. Three focused corrections beat one massive over-specified prompt every time.</p>
+        <div class="code-block" style="margin-top: 14px;"># Round 1 — broad
+"Build the user settings page with sections for profile,
+notifications, and billing. Use mock data."
+
+# Round 2 — specific correction
+"The notifications section needs three toggle switches:
+email alerts, weekly digest, and product updates. Each
+needs a label and a short description below it."
+
+# Round 3 — scoped follow-up
+"Move billing to its own page at /settings/billing
+and add a link to it from the settings nav."</div>
+      </div>
+      <div class="callout green">
+        <strong>The PM advantage</strong>
+        You're already trained to write acceptance criteria. Apply that muscle: "Given [context], when [action], then [outcome]." That structure translates almost directly into great Cursor prompts.
+      </div>
+    </section>
+
+    <!-- FULL WORKFLOW -->
+    <section id="workflow" class="section">
+      <div class="section-header">
+        <div class="section-number">17 — FULL WORKFLOW</div>
+        <h2>Full project workflow</h2>
+        <p class="subtitle">The end-to-end playbook — from blank folder to handoff-ready prototype</p>
+      </div>
+      <p style="color: var(--text-muted); margin-bottom: 28px;">Everything from the previous sections assembled into a single repeatable process. Use this as a checklist on your next project.</p>
+
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Start with a planning conversation</h3>
+          <p>Open a new Chat. Describe your idea. Ask the AI to help you define screens, data, stack, and scope. Don't open a code file yet. <strong style="color: var(--text);">Output: PLANNING.md + TASKS.md.</strong></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Create your folder and scaffold</h3>
+          <p>New folder. Open in Cursor. Run Composer: <span class="code-inline">Create a Next.js 14 app with TypeScript and Tailwind. Set up the folder structure from my PLANNING.md.</span></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Add your three root files</h3>
+          <p>Drop PLANNING.md, TASKS.md, and .cursorrules in the root before writing any real code. Every Composer session from here starts with <span class="code-inline">@PLANNING.md @TASKS.md</span>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h3>Build screen by screen</h3>
+          <p>One Composer session per screen or feature. Be specific about what's on it. Review every diff. Commit to git after each working screen. Update TASKS.md as you go.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">05</div>
+        <div class="step-content">
+          <h3>Wire it together</h3>
+          <p>Once screens exist, add navigation. Link pages. Test the demo flow end-to-end. Ask: <span class="code-inline">@codebase Review the navigation and make sure every page is reachable and linked correctly.</span></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">06</div>
+        <div class="step-content">
+          <h3>Polish the demo path</h3>
+          <p>Add missing states (empty, loading, success). Make mock data tell a story — real-looking names, plausible numbers, a coherent narrative a user could follow.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">07</div>
+        <div class="step-content">
+          <h3>Generate your handoff artifacts</h3>
+          <div class="code-block" style="margin-top: 10px;">@codebase Generate ARCHITECTURE.md, DATA_MODEL.md,
+API_NEEDS.md, and KNOWN_ISSUES.md for this prototype.
+Be specific and honest about what's stubbed or missing.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">08</div>
+        <div class="step-content">
+          <h3>Record a walkthrough and ship</h3>
+          <p>2–3 minute Loom. Walk through the demo path. Narrate what you built and what's intentionally out of scope. Share Loom + repo link. That's your handoff package.</p>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="card" style="border-color: rgba(127,255,110,0.2);">
+        <div class="card-title" style="color: var(--accent);">🗓 Realistic time expectations</div>
+        <ul class="styled" style="margin-top: 12px;">
+          <li><strong style="color: var(--text);">Simple 3-screen prototype</strong> — 2–4 hours from idea to demo-ready</li>
+          <li><strong style="color: var(--text);">Medium 6–8 screen prototype</strong> — Half a day to a full day</li>
+          <li><strong style="color: var(--text);">Complex multi-flow prototype</strong> — 2–3 days, especially if you want polish</li>
+          <li><strong style="color: var(--text);">Full handoff package</strong> — Add 1–2 hours to generate and review artifacts</li>
+        </ul>
+        <p style="margin-top: 14px; font-size: 14px; color: var(--text-muted);">These assume a clear PLANNING.md before you start building. The planning phase is not optional — it's what makes these timelines possible.</p>
+      </div>
+      <div class="callout blue" style="margin-top: 24px;">
+        <strong>One last thing</strong>
+        The workflow gets dramatically faster with practice. Your second prototype will be twice as fast as your first. By your fifth, you'll have your .cursorrules dialed in, your own PLANNING.md template, and a set of go-to prompts that reliably produce good results. That compounding is the real payoff.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  function toggleMenu() {
+    document.querySelector('.sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
+
+  function showSection(id) {
+    // Hide all sections
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    // Show target
+    var target = document.getElementById(id);
+    if (target) target.classList.add('active');
+    // Update nav active state
+    document.querySelectorAll('.nav-link').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-section') === id);
+    });
+    // Close mobile menu
+    document.querySelector('.sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Event delegation on sidebar
+  document.querySelector('.sidebar').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-section]');
+    if (btn) {
+      e.preventDefault();
+      showSection(btn.getAttribute('data-section'));
+    }
+  });
+</script>
+
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW failed:', err));
+    });
+  }
+</script>
+</body>
+</html>
